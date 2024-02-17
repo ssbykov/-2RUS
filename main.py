@@ -12,24 +12,18 @@ def keyword_pars(pars_str: str):
 
 
 if __name__ == "__main__":
-    parsing52 = Parsing52(file_name, "-71 5.2")
-    parsing52.parsing52()
+    parsing52 = Parsing52(file_name, "-71 5.2.")
+    parsing52.pars()
     # pprint(parsing52.paragraphs)
 
-    parsing53 = Parsing53(file_name, "-71 5.3", int("331"))
-    try:
-        paragraphs = parsing53.parsing53()
-    except StopIteration:
-        # pprint(parsing53.params_dict)
-        for _ in parsing53.params:
-            # print(_)
-            # print(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}")
-            res = parsing52.paragraphs.get(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}", "НЕТ")
-            if res == "НЕТ":
-                print(_)
-            # print(parsing52.paragraphs.get(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}", "НЕТ"))
-        print(len(parsing53.params))
-    #
-    # pprint(paragraphs)
-    # print(len(paragraphs))
-    # print(parsing52.last_page)
+    parsing53 = Parsing53(file_name, "-71 5.3", parsing52.last_page)
+    paragraphs = parsing53.pars()
+    parsing53.check_52(parsing52.paragraphs)
+    # for _ in parsing53.params:
+        # print(_)
+        # print(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}")
+        # res = parsing52.paragraphs.get(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}", "НЕТ")
+        # if res == "НЕТ":
+        #     print(_)
+        # print(parsing52.paragraphs.get(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}", "НЕТ"))
+        # print(len(parsing53.params))

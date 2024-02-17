@@ -14,7 +14,7 @@ def keyword_pars(pars_str: str):
 if __name__ == "__main__":
     parsing52 = Parsing52(file_name, "-71 5.2")
     parsing52.parsing52()
-    pprint(parsing52.paragraphs)
+    # pprint(parsing52.paragraphs)
 
     parsing53 = Parsing53(file_name, "-71 5.3", int("331"))
     try:
@@ -23,8 +23,11 @@ if __name__ == "__main__":
         # pprint(parsing53.params_dict)
         for _ in parsing53.params:
             # print(_)
-            print(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}")
-            print(parsing52.paragraphs.get(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}", "НЕТ"))
+            # print(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}")
+            res = parsing52.paragraphs.get(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}", "НЕТ")
+            if res == "НЕТ":
+                print(_)
+            # print(parsing52.paragraphs.get(f"{_['paragraph_number']}_{_['PGN']}_{_['Name']}", "НЕТ"))
         print(len(parsing53.params))
     #
     # pprint(paragraphs)

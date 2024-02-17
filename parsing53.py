@@ -7,12 +7,15 @@ class Parsing53:
     START_HEAD_FLAG = "-71"
     PATTERN52 = (r'([\d|\.|]+|[a-z])\s([\d,\s,a-z]+|Variabl)\s+(.+)\s+(\d+)\s+-71\s+([\d|\.|\?]+)(\s+\d+\/\d+\/\d+)?')
     BOTTOM_PAGE = "J1939 –71 Database Report April 15, 2001"
+    PATTERN_PARAMETER_GROUP = r'Parameter Group\s+(\d+)\s+\(\s+(\w+)\s+\)'
 
     def __init__(self, file_path: str, pattern: str, page_number: int):
         self.__str_list = None
         self.params = []
-        self.params_dict = {}
-        self.__pages = iter(PdfReader(file_path).pages[page_number:])
+        # self.params_dict = {}
+        self.pdf_reader = PdfReader(file_path).pages
+        self.__pbar = None
+        self.__pages = iter(self.pdf_reader)
         self.pattern = pattern
 
     def parsing53(self):
@@ -34,31 +37,31 @@ class Parsing53:
                     name = " ".join(str_list[-pos_71 + 1:-3]).strip()
                     doc_paragraph = str_list[-pos_71]
                     return doc_paragraph, name
-            next_str = self.__next_sub_str_paragraph().strip()
+            next_str = self.__next_str().strip()
 
     def __add_paragraph(self, doc_paragraph: str, name: str):
         buffer_str_name = ""
-        self.params_dict[doc_paragraph] = []
-        pars_str = self.__next_sub_str_paragraph()
+        # self.params_dict[doc_paragraph] = []
+        pars_str = self.__next_str()
         data_length = pgn = paragraph_id = ""
         while "POS Length  Parameter Name  SPN and paragraph  Approved" not in pars_str:
             if "Data Length:" in pars_str:
                 data_length = pars_str[len("Data Length: "):].split(",")[0].strip()
             elif "Parameter Group" in pars_str:
-                pgn_id = re.findall(r'Parameter Group\s+(\d+)\s+\(\s+(\w+)\s+\)', pars_str)[0]
+                pgn_id = re.findall(self.PATTERN_PARAMETER_GROUP, pars_str)[0]
                 pgn = pgn_id[0]
                 paragraph_id = pgn_id[1]
-            pars_str = self.__next_sub_str_paragraph()
+            pars_str = self.__next_str()
 
-        pars_str = self.__next_sub_str_paragraph()
+        pars_str = self.__next_str()
         while pars_str[:3] != self.START_HEAD_FLAG:
             check_52 = re.findall(self.PATTERN52, pars_str)
             if check_52:
                 if buffer_str_name:
                     self.params[-1]["Name"] += buffer_str_name
                     buffer_str_name = ""
-                if self.params:
-                    self.params_dict[doc_paragraph].append(self.params[-1])
+                # if self.params:
+                #     self.params_dict[doc_paragraph].append(self.params[-1])
                 length = check_52[0][1]
                 parameter_name = check_52[0][2].strip()
                 spn = check_52[0][3]
@@ -80,14 +83,14 @@ class Parsing53:
                 buffer_str_name += " " + pars_str.strip()
             else:
                 break
-            pars_str = self.__next_sub_str_paragraph()
-        self.params_dict[doc_paragraph].append(self.params[-1])
-        self.params_dict[doc_paragraph].pop(0)
+            pars_str = self.__next_str()
+        # self.params_dict[doc_paragraph].append(self.params[-1])
+        # self.params_dict[doc_paragraph].pop(0)
         if buffer_str_name:
             self.params[-1]["Name"] += buffer_str_name
         return pars_str
 
-    def __next_sub_str_paragraph(self):
+    def __next_str(self):
         try:
             return next(self.__str_list).strip()
         except StopIteration:

@@ -1,7 +1,5 @@
 import re
 
-from progressbar import ProgressBar
-
 from Pars import Pars
 
 
@@ -11,13 +9,11 @@ class Parsing52(Pars):
     FLAG_STOP_PATTERN = "-71 5.3."
 
     def __init__(self, file_path: str, pattern: str):
-        super().__init__(file_path)
+        super().__init__(file_path, pattern)
         self.paragraphs = {}
-        self.__pattern = pattern
 
     def pars(self):
-        print(f"\nЗапущен процесс сбора данных по маркеру {self.__pattern}")
-        # self._pbar = ProgressBar(max_value=len(self.pdf_reader), redirect_stdout=True)
+        self._pbar.desc = f"Обработка по маркеру {self._pattern}"
         while not self._stop_flag:
             pars_page = self._next_page()
             self._str_list = iter(pars_page.extract_text().split("\n"))
@@ -31,7 +27,7 @@ class Parsing52(Pars):
     def __find_head(self, pars_str=""):
         while not self._stop_flag:
             self.__stop_check(pars_str)
-            substr_position = pars_str.find(self.__pattern)
+            substr_position = pars_str.find(self._pattern)
             if substr_position != -1:
                 sub_str = pars_str[substr_position + 3:].strip()
                 space_position = sub_str.strip().find(" ")
@@ -59,7 +55,7 @@ class Parsing52(Pars):
 
         while True:
             check_png = re.split(self.PGN_PATTERN, pars_str.strip(self.PGN))[:-1]
-            if pars_str.strip()[:8] == self.__pattern or self.__stop_check(pars_str) or self._stop_flag:
+            if pars_str.strip()[:8] == self._pattern or self.__stop_check(pars_str) or self._stop_flag:
                 break
             if check_png:
                 pngs.extend([p.split()[0] for p in check_png])

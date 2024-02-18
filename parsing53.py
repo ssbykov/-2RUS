@@ -1,8 +1,5 @@
 import re
 
-from PyPDF2 import PdfReader
-from progressbar import ProgressBar
-
 from Pars import Pars
 
 
@@ -12,15 +9,13 @@ class Parsing53(Pars):
     PATTERN_PARAMETER_GROUP = r'Parameter Group\s+(\d+)\s+\(\s+(\w+)\s+\)'
 
     def __init__(self, file_path: str, pattern: str, page_number: int):
-        super().__init__(file_path)
+        super().__init__(file_path, pattern)
         self.params = []
         self.last_page = page_number - 1
         self._pages = iter(self.pdf_reader[self.last_page:])
-        self.pattern = pattern
 
     def pars(self):
-        print("\nЗапущен процесс сбора данных по номеру 5.3.")
-        self._pbar.update(self.last_page)
+        self._pbar.desc = f"Обработка по маркеру {self._pattern}"
         while not self._stop_flag:
             pars_page = self._next_page()
             self._str_list = iter(pars_page.extract_text().split("\n"))
@@ -30,27 +25,74 @@ class Parsing53(Pars):
                 self.__find_head(next_str)
 
     def check_52(self, dict_52: dict):
+        def key(par):
+            return f"{par['paragraph_number']}_{par['PGN']}_{par['Name']}"
+
+        recognized_lst = [
+            {
+                "ID": param["ID"],
+                "Data_length": param["Data_length"],
+                "Length": param["Length"],
+                "Name": param["Name"],
+                "RusName": "",
+                "Scaling": dict_52.get(key(param))["Slot Scaling"],
+                "Range": dict_52.get(key(param))["Slot Range"],
+                "SPN": dict_52.get(key(param))["SPN"],
+            } for param in self.params
+            if dict_52.get(key(param))]
+
         not_recognized_lst = [param for param in self.params
-                  if not dict_52.get(f"{param['paragraph_number']}_{param['PGN']}_{param['Name']}")]
+                              if not dict_52.get(key(param))]
+        if not_recognized_lst:
 
-        print(f"\nНе распознано {len(not_recognized_lst)} строк")
-        for res in not_recognized_lst:
-            # print(res)
-            variants = [val for val in dict_52.values()
-                   if val["PGN"] == res["PGN"] and val["paragraph_number"] == res["paragraph_number"]
-                   and (val["Name"] in res["Name"] or res["Name"] in val["Name"])]
+            not_recognized_finally = []
+            for record in not_recognized_lst:
+                variants = [(min(len(record["Name"]), len(val["Name"])), val) for val in dict_52.values()
+                            if val["PGN"] == record["PGN"] and val["paragraph_number"] == record["paragraph_number"]
+                            and (val["Name"] in record["Name"] or record["Name"] in val["Name"])]
+                if not variants:
+                    not_recognized_finally.append(record)
+                    continue
+                mach_variant = max(variants)[1]
 
-            print(variants)
+                # print("Сопоставить запись:")
+                # print(record["Name"])
+                # print("с записью")
+                # print(mach_variant["Name"])
+                ans = "1"
+                # while ans not in ("0", "1"):
+                #     ans = input("Нажмите \"1 - Да или 0 - нет\"\n")
+                if ans == "1":
+                    recognized_lst.append(
+                        {
+                            "ID": record["ID"],
+                            "Data_length": record["Data_length"],
+                            "Length": record["Length"],
+                            "Name": record["Name"] if len(record["Name"]) > len(mach_variant["Name"])
+                            else mach_variant["Name"],
+                            "RusName": "",
+                            "Scaling": mach_variant["Slot Scaling"],
+                            "Range": mach_variant["Slot Range"],
+                            "SPN": mach_variant["SPN"],
+                        }
+                    )
+                else:
+                    not_recognized_finally.append(record)
+            print(f"\nНе сопоставлено {len(not_recognized_finally)} записей")
+            for record in not_recognized_finally:
+                print(record)
+        self._pbar.write(f"\nРаспознано {len(recognized_lst)} записей")
+        return recognized_lst
 
-    def __find_head(self, next_str=""):
+    def __find_head(self, pars_str=""):
         while not self._stop_flag:
-            str_list = [el.strip() for el in next_str.split(" ")]
+            str_list = [el.strip() for el in pars_str.split(" ")]
             pos_71_lst = [i for i, el in enumerate(reversed(str_list)) if el == self.START_HEAD_FLAG]
-            if pos_71_lst and "5.3." in next_str and str_list[-2] == "-":
+            if pos_71_lst and "5.3." in pars_str and str_list[-2] == "-":
                 pos_71 = pos_71_lst[-1]
                 if pos_71 and str_list[-2] == "-":
                     return
-            next_str = self._next_str().strip()
+            pars_str = self._next_str().strip()
 
     def __add_paragraph(self):
         buffer_str_name = ""

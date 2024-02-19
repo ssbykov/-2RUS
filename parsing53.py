@@ -54,30 +54,22 @@ class Parsing53(Pars):
                     continue
                 mach_variant = max(variants)[1]
 
-                # print("Сопоставить запись:")
-                # print(record["Name"])
-                # print("с записью")
-                # print(mach_variant["Name"])
-                ans = "1"
-                # while ans not in ("0", "1"):
-                #     ans = input("Нажмите \"1 - Да или 0 - нет\"\n")
-                if ans == "1":
-                    recognized_lst.append(
-                        {
-                            "ID": record["ID"],
-                            "Data_length": record["Data_length"],
-                            "Length": record["Length"],
-                            "Name": record["Name"] if len(record["Name"]) > len(mach_variant["Name"])
-                            else mach_variant["Name"],
-                            "RusName": "",
-                            "Scaling": mach_variant["Slot Scaling"],
-                            "Range": mach_variant["Slot Range"],
-                            "SPN": mach_variant["SPN"],
-                        }
-                    )
-                else:
-                    not_recognized_finally.append(record)
-            print(f"\nНе сопоставлено {len(not_recognized_finally)} записей")
+                recognized_lst.append(
+                    {
+                        "ID": record["ID"],
+                        "Data_length": record["Data_length"],
+                        "Length": record["Length"],
+                        "Name": record["Name"] if len(record["Name"]) > len(mach_variant["Name"])
+                        else mach_variant["Name"],
+                        "RusName": "",
+                        "Scaling": mach_variant["Slot Scaling"],
+                        "Range": mach_variant["Slot Range"],
+                        "SPN": mach_variant["SPN"],
+                    }
+                )
+            print(f"\nПоследние {len(not_recognized_lst) - len(not_recognized_finally)}"
+                  f" записей добавлены в базу были сопоставлены путем частичного, максимального совпадения имен.")
+            print(f"Не сопоставлено {len(not_recognized_finally)} записей")
             for record in not_recognized_finally:
                 print(record)
         self._pbar.write(f"\nРаспознано {len(recognized_lst)} записей")

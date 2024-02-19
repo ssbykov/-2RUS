@@ -19,6 +19,7 @@ class Pars(ABC):
         self.last_page = 0
         self._pbar.total = len(self.pdf_reader)
 
+    # основной метод для запуска парсинга страниц PDF файла
     def pars(self):
         while not self._stop_flag:
             pars_page = self._next_page()
@@ -28,6 +29,7 @@ class Pars(ABC):
                 next_str = self._add_paragraph(head)
                 head = self._find_head(next_str)
 
+    #  метод для поиска заголовков по указанному шаблону
     def _find_head(self, pars_str="", stop_flag_pattern=""):
         while not self._stop_flag:
             if stop_flag_pattern:
@@ -37,10 +39,12 @@ class Pars(ABC):
                 return {"doc_number": name_number[0][0].strip(), "name": name_number[0][1].strip()}
             pars_str = self._next_str()
 
+    # абстрактный метод для парсинга данных между заголовками в тексте
     @abstractmethod
     def _add_paragraph(self, kwargs):
         pass
 
+    # метод для получения следующей строки текста
     def _next_str(self):
         try:
             return next(self._str_list).strip()
@@ -55,6 +59,7 @@ class Pars(ABC):
             else:
                 return ""
 
+    # метод для перехода к следующей странице PDF файла
     def _next_page(self):
         if self.last_page < self._pbar.total and not self._stop_flag:
             self.last_page += 1
@@ -63,6 +68,7 @@ class Pars(ABC):
         else:
             self._stop_flag = True
 
+    # метод для проверки условия остановки парсинга
     def _stop_check(self, pars_str: str, stop_flag_pattern: str):
         if re.findall(stop_flag_pattern, pars_str):
             self._stop_flag = True

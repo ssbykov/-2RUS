@@ -5,7 +5,7 @@ from Pars import Pars
 
 class Parsing52(Pars):
     PGN = "PGN Parameter Group Name and Acronym  Doc. and Paragraph"
-    PGN_PATTERN = r'5\.3\.[\d,\?]+'
+    PGN_PATTERN = r'\s-71 5.3.[\d,\?]+'
 
     def __init__(self, file_path: str, pattern: str, flag_stop_pattern):
         super().__init__(file_path, pattern, flag_stop_pattern)
@@ -27,13 +27,10 @@ class Parsing52(Pars):
         slot_scaling = slot_range = spn = ""
         while self.PGN not in pars_str and not self._stop_flag:
             if "Slot Scaling:" in pars_str:
-                # slot_scaling = pars_str.strip("Slot Scaling: ").split(",")[0].strip()
                 slot_scaling = re.findall(r'Slot Scaling:\s+(.+)\s,.+\sOffset$', pars_str)[0].strip()
             elif "Slot Range:" in pars_str:
-                # slot_range = pars_str.strip("Slot Range: ").split("Operational Range:")[0].strip()
                 slot_range = re.findall(r'Slot Range:\s+(.+)\s+Operational Range:.+?$', pars_str)[0].strip()
             elif "SPN:" in pars_str:
-                # spn = pars_str.strip("SPN: ").strip()
                 spn = re.findall(r'SPN:\s(.+)$', pars_str)[0].strip()
             pars_str = self._next_str()
 

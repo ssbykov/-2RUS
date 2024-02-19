@@ -4,22 +4,16 @@ from Pars import Pars
 
 
 class Parsing52(Pars):
-    HEAD_PATTERN = r'-71 (5.2.\d.[\d,\?]+)\s(.+)'
     PGN = "PGN Parameter Group Name and Acronym  Doc. and Paragraph"
     PGN_PATTERN = r'5\.3\.[\d,\?]+'
-    FLAG_STOP_PATTERN = "-71 5.3."
 
     def __init__(self, file_path: str, pattern: str, flag_stop_pattern):
         super().__init__(file_path, pattern, flag_stop_pattern)
-        self._parsed_data = {}
+        self.__parsed_data = {}
 
-    # def _find_head(self, pars_str=""):
-    #     while not self._stop_flag:
-    #         self.__stop_check(pars_str)
-    #         name_number = re.findall(self.HEAD_PATTERN, pars_str)
-    #         if name_number:
-    #             return {"doc_number": name_number[0][0].strip(), "name": name_number[0][1].strip()}
-    #         pars_str = self._next_str()
+    @property
+    def parsed_data(self):
+        return self.__parsed_data
 
     def _add_paragraph(self, head: dict):
         name = head["name"]
@@ -40,10 +34,9 @@ class Parsing52(Pars):
                 spn = pars_str.strip("SPN: ").strip()
             pars_str = self._next_str()
 
-        while True:
+        while not (re.findall(self._head_pattern, pars_str) or self._stop_check(pars_str, self._flag_stop_pattern)):
             check_png = re.split(self.PGN_PATTERN, pars_str.strip(self.PGN))[:-1]
-            if pars_str.strip()[:8] == "-71 5.2." or self._stop_check(pars_str, self._flag_stop_pattern) or self._stop_flag:
-                break
+
             if check_png:
                 pngs.extend([p.split()[0] for p in check_png])
 
@@ -59,14 +52,8 @@ class Parsing52(Pars):
                 "PGN": pgn,
                 "paragraph_number": doc_number
             }
-            self._parsed_data.setdefault(key, paragraph_dict)
+            self.__parsed_data.setdefault(key, paragraph_dict)
 
             if extra_name:
-                self._parsed_data.setdefault(key + " " + extra_name, paragraph_dict)
+                self.__parsed_data.setdefault(key + " " + extra_name, paragraph_dict)
         return pars_str
-
-    # def __stop_check(self, pars_str: str):
-    #     if pars_str.strip()[:8] == self.FLAG_STOP_PATTERN:
-    #         self._stop_flag = True
-    #         return True
-    #     return False

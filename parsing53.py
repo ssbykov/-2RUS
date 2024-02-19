@@ -4,23 +4,26 @@ from Pars import Pars
 
 
 class Parsing53(Pars):
-    HEAD_PATTERN = r'-71 (5.3.[\d,\?]+)\s(.+) - [A-Z,\d]+'
     START_HEAD_FLAG = "-71"
     PATTERN52 = (r'([\d|\.|]+|[a-z])\s([\d,\s,a-z]+|Variabl)\s+(.+)\s+(\d+)\s+-71\s+([\d|\.|\?]+)(\s+\d+\/\d+\/\d+)?')
     PATTERN_PARAMETER_GROUP = r'Parameter Group\s+(\d+)\s+\(\s+(\w+)\s+\)'
 
     def __init__(self, file_path: str, pattern: str, page_number: int):
         super().__init__(file_path, pattern)
-        self._parsed_data = []
+        self.__parsed_data = []
         self.last_page = page_number - 1
         self._pages = iter(self.pdf_reader[self.last_page:])
+
+    @property
+    def parsed_data(self):
+        return self.__parsed_data
 
     def check_52(self, dict_52: dict):
         def key(rec):
             return f"{rec['paragraph_number']}_{rec['PGN']}_{rec['Name']}"
 
         recognized_lst = []
-        for record in self._parsed_data:
+        for record in self.__parsed_data:
             if dict_52.get(key(record)):
                 recognized_lst.append(record)
 
@@ -34,10 +37,10 @@ class Parsing53(Pars):
                 "Scaling": dict_52.get(key(record))["Slot Scaling"],
                 "Range": dict_52.get(key(record))["Slot Range"],
                 "SPN": dict_52.get(key(record))["SPN"],
-            } for record in self._parsed_data
+            } for record in self.__parsed_data
             if dict_52.get(key(record))]
 
-        not_recognized_lst = [param for param in self._parsed_data
+        not_recognized_lst = [param for param in self.__parsed_data
                               if not dict_52.get(key(param))]
         if not_recognized_lst:
 
@@ -80,14 +83,6 @@ class Parsing53(Pars):
         self._pbar.write(f"\nРаспознано {len(recognized_lst)} записей")
         return recognized_lst
 
-    # def _find_head(self, pars_str=""):
-    #     while not self._stop_flag:
-    #         # self.__stop_check(pars_str)
-    #         name_number = re.findall(self.HEAD_PATTERN, pars_str)
-    #         if name_number:
-    #             return {"doc_number": name_number[0][0].strip(), "name": name_number[0][1].strip()}
-    #         pars_str = self._next_str()
-
     def _add_paragraph(self, head: dict):
         buffer_str_name = ""
         pars_str = self._next_str()
@@ -106,13 +101,13 @@ class Parsing53(Pars):
             check_52 = re.findall(self.PATTERN52, pars_str)
             if check_52:
                 if buffer_str_name:
-                    self._parsed_data[-1]["Name"] += buffer_str_name
+                    self.__parsed_data[-1]["Name"] += buffer_str_name
                     buffer_str_name = ""
                 length = check_52[0][1]
                 parameter_name = check_52[0][2].strip()
                 spn = check_52[0][3]
                 paragraph_number = check_52[0][4]
-                self._parsed_data.append(
+                self.__parsed_data.append(
                     {
                         "ID": paragraph_id,
                         "Data_length": data_length,
@@ -123,13 +118,13 @@ class Parsing53(Pars):
                         "paragraph_number": paragraph_number
                     }
                 )
-            elif "Variabl" in self._parsed_data[-1]["Length"]:
-                self._parsed_data[-1]["Length"] += " " + pars_str
+            elif "Variabl" in self.__parsed_data[-1]["Length"]:
+                self.__parsed_data[-1]["Length"] += " " + pars_str
             elif pars_str.strip():
                 buffer_str_name += " " + pars_str.strip()
             else:
                 break
             pars_str = self._next_str()
         if buffer_str_name:
-            self._parsed_data[-1]["Name"] += buffer_str_name
+            self.__parsed_data[-1]["Name"] += buffer_str_name
         return pars_str

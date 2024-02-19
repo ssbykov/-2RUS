@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 
 class Pars(ABC):
     BOTTOM_PAGE = "J1939 –71 Database Report April 15, 2001"
-    _pbar = tqdm(total=1, ncols=100)
+    _pbar = tqdm(total=1, ncols=100, desc="Парсинг страниц:")
 
     def __init__(self, file_path: str, head_pattern: str, flag_stop_pattern=""):
         self.pdf_reader = PdfReader(file_path).pages
@@ -20,7 +20,6 @@ class Pars(ABC):
         self._pbar.total = len(self.pdf_reader)
 
     def pars(self):
-        self._pbar.desc = f"Обработка по маркеру {self._head_pattern}"
         while not self._stop_flag:
             pars_page = self._next_page()
             self._str_list = iter(pars_page.extract_text().split("\n"))

@@ -26,13 +26,13 @@ class Record(Base):
     __tablename__ = 'parsing_data'
 
     id = Column(Integer, primary_key=True)
-    ID = Column(String(10))
-    Data_length = Column(String(10))
-    Length = Column(String(100))
-    Name = Column(String(200))
-    RusName = Column(String(200))
-    Scaling = Column(String(50))
-    SPN = Column(String(100))
+    ID = Column(String(10), nullable=False)
+    Data_length = Column(String(10), nullable=False)
+    Length = Column(String(100), nullable=False)
+    Name = Column(String(200), nullable=False)
+    RusName = Column(String(200), nullable=False)
+    Scaling = Column(String(50), nullable=False)
+    SPN = Column(String(100), nullable=False)
 
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)

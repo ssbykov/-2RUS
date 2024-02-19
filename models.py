@@ -32,6 +32,7 @@ class Record(Base):
     Name = Column(String(200), nullable=False)
     RusName = Column(String(200), nullable=False)
     Scaling = Column(String(50), nullable=False)
+    Range = Column(String(50), nullable=False)
     SPN = Column(String(100), nullable=False)
 
 
@@ -46,6 +47,7 @@ async def insert_data(data_part: list):
         Name=record['Name'],
         RusName=record['RusName'],
         Scaling=record['Scaling'],
+        Range=record['Range'],
         SPN=record['SPN']
     ) for record in data_part]
     async with async_session_maker() as orm_session:

@@ -27,11 +27,14 @@ class Parsing52(Pars):
         slot_scaling = slot_range = spn = ""
         while self.PGN not in pars_str and not self._stop_flag:
             if "Slot Scaling:" in pars_str:
-                slot_scaling = pars_str.strip("Slot Scaling: ").split(",")[0].strip()
+                # slot_scaling = pars_str.strip("Slot Scaling: ").split(",")[0].strip()
+                slot_scaling = re.findall(r'Slot Scaling:\s+(.+)\s,.+\sOffset$', pars_str)[0].strip()
             elif "Slot Range:" in pars_str:
-                slot_range = pars_str.strip("Slot Range: ").split("Operational Range:")[0].strip()
+                # slot_range = pars_str.strip("Slot Range: ").split("Operational Range:")[0].strip()
+                slot_range = re.findall(r'Slot Range:\s+(.+)\s+Operational Range:.+?$', pars_str)[0].strip()
             elif "SPN:" in pars_str:
-                spn = pars_str.strip("SPN: ").strip()
+                # spn = pars_str.strip("SPN: ").strip()
+                spn = re.findall(r'SPN:\s(.+)$', pars_str)[0].strip()
             pars_str = self._next_str()
 
         while not (re.findall(self._head_pattern, pars_str) or self._stop_check(pars_str, self._flag_stop_pattern)):

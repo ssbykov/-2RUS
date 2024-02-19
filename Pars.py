@@ -10,7 +10,7 @@ class Pars(ABC):
     _pbar = tqdm(total=1, ncols=100)
 
     def __init__(self, file_path: str, head_pattern: str, flag_stop_pattern=""):
-        self.pdf_reader = PdfReader(file_path).pages[33:]
+        self.pdf_reader = PdfReader(file_path).pages
         self._pages = iter(self.pdf_reader)
         self._flag_stop_pattern = flag_stop_pattern
         self._head_pattern = head_pattern

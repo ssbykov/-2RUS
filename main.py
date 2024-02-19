@@ -11,7 +11,7 @@ file_name = "SAE J1939-71.pdf"
 
 if __name__ == "__main__":
     HEAD_PATTERN_52 = r'-71 (5.2.\d.[\d,\?]+)\s(.+)'
-    HEAD_PATTERN_53 = r'-71 (5.3.[\d,\?]+)\s(.+) - [A-Z,\d]+'
+    HEAD_PATTERN_53 = r'-71 (5.3.[\d,\?]+)\s(.+) - [A-Z,\d]+$'
     parsing52 = Parsing52(file_name, HEAD_PATTERN_52, flag_stop_pattern=HEAD_PATTERN_53)
     parsing52.pars()
 

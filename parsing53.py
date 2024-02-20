@@ -18,6 +18,7 @@ class Parsing53(Pars):
     def parsed_data(self):
         return self.__parsed_data
 
+  
     def check_52(self, dict_52: dict):
         def key(rec):
             return f"{rec['paragraph_number']}_{rec['PGN']}_{rec['Name']}"

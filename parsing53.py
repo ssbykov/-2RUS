@@ -10,38 +10,38 @@ class Parsing53(Pars):
 
     def __init__(self, file_path: str, pattern: str, page_number: int):
         super().__init__(file_path, pattern)
-        self.params = []
+        self.__parsed_data = []
         self.last_page = page_number - 1
         self._pages = iter(self.pdf_reader[self.last_page:])
 
-    def pars(self):
-        self._pbar.desc = f"Обработка по маркеру {self._pattern}"
-        while not self._stop_flag:
-            pars_page = self._next_page()
-            self._str_list = iter(pars_page.extract_text().split("\n"))
-            self.__find_head()
-            while not self._stop_flag:
-                next_str = self.__add_paragraph()
-                self.__find_head(next_str)
+    @property
+    def parsed_data(self):
+        return self.__parsed_data
 
+  
     def check_52(self, dict_52: dict):
-        def key(par):
-            return f"{par['paragraph_number']}_{par['PGN']}_{par['Name']}"
+        def key(rec):
+            return f"{rec['paragraph_number']}_{rec['PGN']}_{rec['Name']}"
+
+        recognized_lst = []
+        for record in self.__parsed_data:
+            if dict_52.get(key(record)):
+                recognized_lst.append(record)
 
         recognized_lst = [
             {
-                "ID": param["ID"],
-                "Data_length": param["Data_length"],
-                "Length": param["Length"],
-                "Name": param["Name"],
+                "ID": record["ID"],
+                "Data_length": record["Data_length"],
+                "Length": record["Length"],
+                "Name": record["Name"],
                 "RusName": "",
-                "Scaling": dict_52.get(key(param))["Slot Scaling"],
-                "Range": dict_52.get(key(param))["Slot Range"],
-                "SPN": dict_52.get(key(param))["SPN"],
-            } for param in self.params
-            if dict_52.get(key(param))]
+                "Scaling": dict_52.get(key(record))["Slot Scaling"],
+                "Range": dict_52.get(key(record))["Slot Range"],
+                "SPN": dict_52.get(key(record))["SPN"],
+            } for record in self.__parsed_data
+            if dict_52.get(key(record))]
 
-        not_recognized_lst = [param for param in self.params
+        not_recognized_lst = [param for param in self.__parsed_data
                               if not dict_52.get(key(param))]
         if not_recognized_lst:
 
@@ -55,46 +55,28 @@ class Parsing53(Pars):
                     continue
                 mach_variant = max(variants)[1]
 
-                # print("Сопоставить запись:")
-                # print(record["Name"])
-                # print("с записью")
-                # print(mach_variant["Name"])
-                ans = "1"
-                # while ans not in ("0", "1"):
-                #     ans = input("Нажмите \"1 - Да или 0 - нет\"\n")
-                if ans == "1":
-                    recognized_lst.append(
-                        {
-                            "ID": record["ID"],
-                            "Data_length": record["Data_length"],
-                            "Length": record["Length"],
-                            "Name": record["Name"] if len(record["Name"]) > len(mach_variant["Name"])
-                            else mach_variant["Name"],
-                            "RusName": "",
-                            "Scaling": mach_variant["Slot Scaling"],
-                            "Range": mach_variant["Slot Range"],
-                            "SPN": mach_variant["SPN"],
-                        }
-                    )
-                else:
-                    not_recognized_finally.append(record)
-            print(f"\nНе сопоставлено {len(not_recognized_finally)} записей")
+                recognized_lst.append(
+                    {
+                        "ID": record["ID"],
+                        "Data_length": record["Data_length"],
+                        "Length": record["Length"],
+                        "Name": record["Name"] if len(record["Name"]) > len(mach_variant["Name"])
+                        else mach_variant["Name"],
+                        "RusName": "",
+                        "Scaling": mach_variant["Slot Scaling"],
+                        "Range": mach_variant["Slot Range"],
+                        "SPN": mach_variant["SPN"],
+                    }
+                )
+            print(f"\nПоследние {len(not_recognized_lst) - len(not_recognized_finally)}"
+                  f" записей добавлены в базу были сопоставлены путем частичного, максимального совпадения имен.")
+            print(f"Не сопоставлено {len(not_recognized_finally)} записей")
             for record in not_recognized_finally:
                 print(record)
         self._pbar.write(f"\nРаспознано {len(recognized_lst)} записей")
         return recognized_lst
 
-    def __find_head(self, pars_str=""):
-        while not self._stop_flag:
-            str_list = [el.strip() for el in pars_str.split(" ")]
-            pos_71_lst = [i for i, el in enumerate(reversed(str_list)) if el == self.START_HEAD_FLAG]
-            if pos_71_lst and "5.3." in pars_str and str_list[-2] == "-":
-                pos_71 = pos_71_lst[-1]
-                if pos_71 and str_list[-2] == "-":
-                    return
-            pars_str = self._next_str().strip()
-
-    def __add_paragraph(self):
+    def _add_paragraph(self, head: dict):
         buffer_str_name = ""
         pars_str = self._next_str()
         data_length = pgn = paragraph_id = ""
@@ -112,13 +94,13 @@ class Parsing53(Pars):
             check_52 = re.findall(self.PATTERN52, pars_str)
             if check_52:
                 if buffer_str_name:
-                    self.params[-1]["Name"] += buffer_str_name
+                    self.__parsed_data[-1]["Name"] += buffer_str_name
                     buffer_str_name = ""
                 length = check_52[0][1]
                 parameter_name = check_52[0][2].strip()
                 spn = check_52[0][3]
                 paragraph_number = check_52[0][4]
-                self.params.append(
+                self.__parsed_data.append(
                     {
                         "ID": paragraph_id,
                         "Data_length": data_length,
@@ -129,13 +111,13 @@ class Parsing53(Pars):
                         "paragraph_number": paragraph_number
                     }
                 )
-            elif "Variabl" in self.params[-1]["Length"]:
-                self.params[-1]["Length"] += " " + pars_str
+            elif "Variabl" in self.__parsed_data[-1]["Length"]:
+                self.__parsed_data[-1]["Length"] += " " + pars_str
             elif pars_str.strip():
                 buffer_str_name += " " + pars_str.strip()
             else:
                 break
             pars_str = self._next_str()
         if buffer_str_name:
-            self.params[-1]["Name"] += buffer_str_name
+            self.__parsed_data[-1]["Name"] += buffer_str_name
         return pars_str

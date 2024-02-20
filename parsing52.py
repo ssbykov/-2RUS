@@ -4,8 +4,6 @@ from Pars import Pars
 
 
 class Parsing52(Pars):
-    PGN = "PGN Parameter Group Name and Acronym  Doc. and Paragraph"
-    PGN_PATTERN = r'\s-71 5.3.[\d,\?]+'
 
     def __init__(self, file_path: str, pattern: str, flag_stop_pattern):
         super().__init__(file_path, pattern, flag_stop_pattern)
@@ -16,33 +14,45 @@ class Parsing52(Pars):
         return self.__parsed_data
 
     def _add_paragraph(self, head: dict):
+        # маркер начала раздела с данными по параметру PGN
+        pgn_marker = "PGN Parameter Group Name and Acronym  Doc. and Paragraph"
+        # ключевые паттерны для определения строк с искомыми данными
+        scaling_pattern = r'Slot Scaling:\s+(.+)\s,.+\sOffset$'
+        range_pattern = r'Slot Range:\s+(.+)\s+Operational Range:.+?$'
+        spn_pattern = r'SPN:\s(.+)$'
+        pgn_pattern = r'\s-71 5.3.[\d,\?]+'
+        # инициализация переменных перед запуском цикла распознавания
         name = head["name"]
         doc_number = head["doc_number"]
-        pngs = []
+        pgn_list = []
         pars_str = self._next_str()
         if len(pars_str.split()) < 4:
             extra_name = pars_str
         else:
             extra_name = ""
         slot_scaling = slot_range = spn = ""
-        while self.PGN not in pars_str and not self._stop_flag:
+
+        # цикл для извлечения данных Scaling, Range, SPN
+        while pgn_marker not in pars_str and not self._stop_flag:
             if "Slot Scaling:" in pars_str:
-                slot_scaling = re.findall(r'Slot Scaling:\s+(.+)\s,.+\sOffset$', pars_str)[0].strip()
+                slot_scaling = re.findall(scaling_pattern, pars_str)[0].strip()
             elif "Slot Range:" in pars_str:
-                slot_range = re.findall(r'Slot Range:\s+(.+)\s+Operational Range:.+?$', pars_str)[0].strip()
+                slot_range = re.findall(range_pattern, pars_str)[0].strip()
             elif "SPN:" in pars_str:
-                spn = re.findall(r'SPN:\s(.+)$', pars_str)[0].strip()
+                spn = re.findall(spn_pattern, pars_str)[0].strip()
             pars_str = self._next_str()
 
+        # цикл для извлечения данных PGN
         while not (re.findall(self._head_pattern, pars_str) or self._stop_check(pars_str, self._flag_stop_pattern)):
-            check_png = re.split(self.PGN_PATTERN, pars_str.strip(self.PGN))[:-1]
+            check_pgn = re.split(pgn_pattern, pars_str.strip(pgn_marker))[:-1]
 
-            if check_png:
-                pngs.extend([p.split()[0] for p in check_png])
+            if check_pgn:
+                pgn_list.extend([p.split()[0] for p in check_pgn])
 
             pars_str = self._next_str()
 
-        for pgn in pngs:
+        # добавление записи в словарь данных
+        for pgn in pgn_list:
             key = f"{doc_number}_{pgn}_{name}"
             paragraph_dict = {
                 "Name": name,

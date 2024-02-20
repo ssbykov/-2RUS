@@ -1,7 +1,7 @@
 from progressbar import progressbar
 from translatepy.translators.yandex import YandexTranslate
 
-
+# вспомогательная функция для разбиения списка на части
 def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]

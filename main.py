@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # сопоставляем данные двух разделов
     data_list = parsing53.check_52(parsing52.parsed_data)
 
-    # запускаем перевод данных по ключу Name
+    # запускаем перевод данных по полю таблицы Name
     translated_data_list = translate(data_list, "Name")
 
     # запускаем загрузку в базу данных

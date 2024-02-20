@@ -5,9 +5,12 @@ from tqdm import tqdm
 from abc import ABC, abstractmethod
 
 
+# базовый класс для наследования классов для парсинга отдельных разделов файла
 class Pars(ABC):
+    # текст содержащийся в последней строке каждой страницы файла
     BOTTOM_PAGE = "J1939 –71 Database Report April 15, 2001"
-    _pbar = tqdm(total=1, ncols=100, desc="Парсинг страниц:")
+    # переменная для инициализации прогресс-бара
+    _pbar = tqdm(total=1, ncols=100, desc="Парсинг страниц")
 
     def __init__(self, file_path: str, head_pattern: str, flag_stop_pattern=""):
         self.pdf_reader = PdfReader(file_path).pages
@@ -45,7 +48,7 @@ class Pars(ABC):
         pass
 
     # метод для получения следующей строки текста
-    def _next_str(self):
+    def _next_str(self) -> str:
         try:
             return next(self._str_list).strip()
         except StopIteration:

@@ -26,13 +26,14 @@ class Record(Base):
     __tablename__ = 'parsing_data'
 
     id = Column(Integer, primary_key=True)
-    ID = Column(String(10))
-    Data_length = Column(String(10))
-    Length = Column(String(100))
-    Name = Column(String(200))
-    RusName = Column(String(200))
-    Scaling = Column(String(50))
-    SPN = Column(String(100))
+    ID = Column(String(10), nullable=False)
+    Data_length = Column(String(10), nullable=False)
+    Length = Column(String(100), nullable=False)
+    Name = Column(String(200), nullable=False)
+    RusName = Column(String(200), nullable=False)
+    Scaling = Column(String(50), nullable=False)
+    Range = Column(String(50), nullable=False)
+    SPN = Column(String(100), nullable=False)
 
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
@@ -46,6 +47,7 @@ async def insert_data(data_part: list):
         Name=record['Name'],
         RusName=record['RusName'],
         Scaling=record['Scaling'],
+        Range=record['Range'],
         SPN=record['SPN']
     ) for record in data_part]
     async with async_session_maker() as orm_session:

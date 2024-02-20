@@ -5,8 +5,8 @@ from Pars import Pars
 
 class Parsing53(Pars):
 
-    def __init__(self, file_path: str, pattern: str, page_number: int):
-        super().__init__(file_path, pattern)
+    def __init__(self, file_path: str, head_pattern: str, page_number: int):
+        super().__init__(file_path, head_pattern)
         self.__parsed_data = []
         self.last_page = page_number - 1
         self._pages = iter(self.pdf_reader[self.last_page:])
@@ -89,8 +89,6 @@ class Parsing53(Pars):
             return not_recognized_finally, recognized_lst_part
 
     def _add_paragraph(self, head: dict):
-        # маркер начала строки со следующим параграфом 5.3
-        start_head_flag = "-71"
         # маркер начала таблицы с данными по параграфам 5.2
         table_marker = "POS Length  Parameter Name  SPN and paragraph  Approved"
         # паттерн извлечения данных по параграфам 5.2
@@ -114,7 +112,7 @@ class Parsing53(Pars):
 
         pars_str = self._next_str()
         # цикл для извлечения данных NAME, SPG, номер параграфа раздела 5.2
-        while pars_str[:len(start_head_flag)] != start_head_flag and not self._stop_flag:
+        while not re.findall(self._head_pattern, pars_str) and not self._stop_flag:
             check_52 = re.findall(pattern52, pars_str)
             if check_52:
                 # добавление дополнительной строки для поля NAME

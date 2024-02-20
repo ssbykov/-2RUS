@@ -5,8 +5,8 @@ from Pars import Pars
 
 class Parsing52(Pars):
 
-    def __init__(self, file_path: str, pattern: str, flag_stop_pattern):
-        super().__init__(file_path, pattern, flag_stop_pattern)
+    def __init__(self, file_path: str, head_pattern: str, flag_stop_pattern):
+        super().__init__(file_path, head_pattern, flag_stop_pattern)
         self.__parsed_data = {}
 
     @property
